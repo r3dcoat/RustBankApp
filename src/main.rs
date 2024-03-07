@@ -49,22 +49,33 @@ fn create_account(accounts: &mut Vec<Account>){
 }
 
 fn main() {
-    let mut _app_running = true;
+    let mut app_running = true;
     let mut _logged_in = false;
     let mut _logged_in_account: String = String::new();
     let mut accounts: Vec<Account> = Vec::new();
 
-    println!("Welcome to Bank of Money");
-    println!("How can we help you today?");
-    println!("1) login");
-    println!("2) Create an account");
+    while app_running == true {
+        println!("Welcome to Bank of Money");
+        println!("How can we help you today?");
+        println!("1) login");
+        println!("2) Create an account");
 
-    let mut user_input = String::new();
-    io::stdin()
-        .read_line(&mut user_input)
-        .expect("Failed to read line");
-    let mut user_input = user_input.trim();
-    if user_input == "2" {
-        create_account(&mut accounts);
+        let mut user_input = String::new();
+        io::stdin()
+            .read_line(&mut user_input)
+            .expect("Failed to read line");
+        let mut user_input = user_input.trim();
+        if user_input == "2" {
+            create_account(&mut accounts);
+        } if user_input == "1" {
+
+        } if user_input == "quit" {
+            app_running = false;
+        } else {
+            println!("Please select a valid option. ");
+        }
+
     }
+
+
 }
