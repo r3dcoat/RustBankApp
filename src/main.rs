@@ -1,7 +1,8 @@
 // recreating a banking application that I created in Python
 use std::io;
-use std::thread::AccessError;
-use log::log;
+use std::io::Read;
+// use std::thread::AccessError;
+// use log::log;
 
 struct Account {
     email: String,
@@ -49,8 +50,9 @@ fn create_account(accounts: &mut Vec<Account>){
     }
 }
 
-// function to login an existing account.
-fn logon_account(accounts: &mut Vec<Account, logged_in: &mut bool) {
+// function to log in an existing account.
+// FUNCTION APPEARS TO BE IMPLEMENTED. ACCOUNT LOGS IN AND FUNCTION CLOSES.
+fn logon_account(accounts: &mut Vec<Account>, logged_in: &mut bool, logged_in_account: &mut String) {
     let mut email = String::new();
     let mut password = String::new();
 
@@ -66,17 +68,104 @@ fn logon_account(accounts: &mut Vec<Account, logged_in: &mut bool) {
         .expect("Failed to read line");
     let password = password.trim().to_owned();
 
-    if account.iter().any(|account| account.email == email && account.password == password) {
+    if accounts.iter().any(|account| account.email == email && account.password == password) {
         // this section will need to set the logged_in function to true, and set the account that is logged in.
         // if logged in is set to true then a different menu will display.
         // the logged in account variable will determine what account gets accessed.
+        println!("Welcome back {}", email);
+        *logged_in = true;
+        *logged_in_account = email;
+    } else {
+        println!("INVALID LOGON CREDENTIALS. TRY AGAIN LATER");
+    }
+}
+
+// Function to deposit money
+fn deposit_money(accounts: &mut Vec<Account>, logged_in_account: &mut String){
+    let mut deposit = String::new();
+    let target_account = logged_in_account.to_owned();
+    println!("How much would you like to deposit today?");
+    io::stdin()
+        .read_line(&mut deposit)
+        .expect("Failed to read line");
+    let deposit_amount: i32 = deposit.trim().parse().expect("Please type a number!");
+
+    if deposit_amount < 0  {
+        println!("deposit amount cannot be less than $0");
+        return;
     }
 
+    for account in accounts.iter_mut() {
+        if account.email == target_account {
+            account.balance += deposit_amount;
+            println!("Deposited ${} successfully. New balance is: ${}", deposit_amount, account.balance);
+            return;
+        }
+    }
 }
+
+// Function to withdraw money
+fn withdraw_money(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
+    let mut withdraw = String::new();
+    let target_account = logged_in_account.to_owned();
+    println!("How much would you like to deposit today?");
+    io::stdin()
+        .read_line(&mut withdraw)
+        .expect("Failed to read line");
+    let withdraw_amount: i32 = withdraw.trim().parse().expect("Please type a number!");
+
+    if withdraw_amount < 0 {
+        println!("Withdraw amount cannot be less than $0");
+    }
+
+    for account in accounts.iter_mut() {
+        if account.email == target_account {
+            if account.balance + withdraw_amount >= 0 {
+                account.balance -= withdraw_amount;
+                println!("Withdrew ${} successfully. New balance is: ${}", withdraw_amount, account.balance);
+                return;
+            } else {
+                println!("You do not have the funds necessary for that withdraw");
+                return;
+            }
+        }
+    }
+}
+
+// function to display current balance
+fn display_balance(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
+    let target_account = logged_in_account.to_owned();
+    for account in accounts.iter_mut(){
+        if account.email == target_account {
+            println!("Your current account balance is {}", account.balance);
+            return;
+        }
+    }
+}
+
+// function to transfer money
+fn transfer_money(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
+    let mut target_account = logged_in_account.to_owned();
+    let mut transfer_target = String::new();
+    let mut transfer_amount;
+
+    println!("Enter the name of the account you wish to transfer to: ");
+    io::stdin()
+        .read_line(&mut transfer_target)
+        .expect("Failed to read line");
+    let transfer_target = transfer_target.trim().to_owned();
+
+    println!("Enter the amount you wish to transfer: ");
+    io::stdin()
+        .read_line(&mut transfer_amount)
+        .expect("Failed to read line");
+    let transfer_amount: i32 = transfer_amount.trim().parse().expect("Please enter a valid number");
+}
+
 fn main() {
     let mut app_running = true;
     let mut logged_in = false;
-    let mut _logged_in_account: String = String::new();
+    let mut logged_in_account: String = String::new();
     let mut accounts: Vec<Account> = Vec::new();
 
     while app_running == true {
@@ -84,6 +173,7 @@ fn main() {
         println!("How can we help you today?");
         println!("1) login");
         println!("2) Create an account");
+        println!("3) Exit application");
 
         let mut user_input = String::new();
         io::stdin()
@@ -92,12 +182,44 @@ fn main() {
         let mut user_input = user_input.trim();
         if user_input == "2" {
             create_account(&mut accounts);
-        } if user_input == "1" {
-            logon_account(&mut accounts, &mut logged_in);
-        } if user_input == "quit" {
+        }else if user_input == "1" {
+            logon_account(&mut accounts, &mut logged_in, &mut logged_in_account);
+        }else if user_input == "3" {
             app_running = false;
         } else {
             println!("Please select a valid option. ");
+        }
+
+        while logged_in == true {
+            println!("How can we help you today?");
+            println!("1) Deposit money");
+            println!("2) Withdraw money");
+            println!("3) Display Balance");
+            println!("4) Transfer money");
+            println!("5) Log out");
+
+            let mut user_input2 = String::new();
+            io::stdin()
+                .read_line(&mut user_input2)
+                .expect("Failed to read line");
+            let mut user_input2 = user_input2.trim();
+
+            if user_input2 == "1"{
+                // Deposit money function will go here.
+                deposit_money(&mut accounts, &mut logged_in_account);
+            } else if user_input2 == "2" {
+                // Withdraw money function will go here
+                withdraw_money(&mut accounts, &mut logged_in_account);
+            } else if user_input2 == "3" {
+                // Display current balance function will go here
+                display_balance(&mut accounts, &mut logged_in_account);
+            } else if user_input2 == "4" {
+                // Transfer money to other accounts
+                println!("Feature not yet implemented");
+            } else if user_input2 == "5" {
+                // log out of the account
+                logged_in = false;
+            }
         }
 
     }
