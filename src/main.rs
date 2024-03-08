@@ -147,19 +147,49 @@ fn display_balance(accounts: &mut Vec<Account>, logged_in_account: &mut String) 
 fn transfer_money(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
     let mut target_account = logged_in_account.to_owned();
     let mut transfer_target = String::new();
-    let mut transfer_amount;
+    let mut amount = String::new();
 
     println!("Enter the name of the account you wish to transfer to: ");
     io::stdin()
         .read_line(&mut transfer_target)
         .expect("Failed to read line");
     let transfer_target = transfer_target.trim().to_owned();
+    println!("{}", transfer_target);
 
     println!("Enter the amount you wish to transfer: ");
     io::stdin()
-        .read_line(&mut transfer_amount)
+        .read_line(&mut amount)
         .expect("Failed to read line");
-    let transfer_amount: i32 = transfer_amount.trim().parse().expect("Please enter a valid number");
+    let transfer_amount: i32 = amount.trim().parse().expect("Please enter a valid number");
+
+    for account in accounts.iter_mut(){
+        if account.email == transfer_target {
+            println!("Initializing transfer to {}", transfer_target);
+        } else {
+            println!("The requested account was not found. Try again later.");
+            return;
+        }
+    }
+
+    for account in accounts.iter_mut(){
+        if account.email == target_account {
+            if account.balance - transfer_amount > 0 && account.balance >= transfer_amount {
+                account.balance -= transfer_amount;
+                println!("Your current balance is ${}", account.balance)
+            } else {
+                println!("You do not have the required funds to complete this transfer.");
+                return;
+            }
+        }
+    }
+
+    for account in accounts.iter_mut(){
+        if account.email == transfer_target {
+            account.balance += transfer_amount;
+            println!("Your transfer to ${} was successful.", transfer_target);
+            return;
+        }
+    }
 }
 
 fn main() {
@@ -215,7 +245,7 @@ fn main() {
                 display_balance(&mut accounts, &mut logged_in_account);
             } else if user_input2 == "4" {
                 // Transfer money to other accounts
-                println!("Feature not yet implemented");
+                transfer_money(&mut accounts, &mut logged_in_account);
             } else if user_input2 == "5" {
                 // log out of the account
                 logged_in = false;
