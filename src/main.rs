@@ -1,5 +1,7 @@
 // recreating a banking application that I created in Python
 use std::io;
+use std::thread::AccessError;
+use log::log;
 
 struct Account {
     email: String,
@@ -45,12 +47,35 @@ fn create_account(accounts: &mut Vec<Account>){
         println!("Passwords do not match. Please try again later. "); // if the user failed to input their password correctly, they are returned to the title.
         return;
     }
-
 }
 
+// function to login an existing account.
+fn logon_account(accounts: &mut Vec<Account, logged_in: &mut bool) {
+    let mut email = String::new();
+    let mut password = String::new();
+
+    println!("Enter your account email: ");
+    io::stdin()
+        .read_line(&mut email)
+        .expect("Failed to read line");
+    let email = email.trim().to_owned();
+
+    println!("Enter your password: ");
+    io::stdin()
+        .read_line(&mut password)
+        .expect("Failed to read line");
+    let password = password.trim().to_owned();
+
+    if account.iter().any(|account| account.email == email && account.password == password) {
+        // this section will need to set the logged_in function to true, and set the account that is logged in.
+        // if logged in is set to true then a different menu will display.
+        // the logged in account variable will determine what account gets accessed.
+    }
+
+}
 fn main() {
     let mut app_running = true;
-    let mut _logged_in = false;
+    let mut logged_in = false;
     let mut _logged_in_account: String = String::new();
     let mut accounts: Vec<Account> = Vec::new();
 
@@ -68,7 +93,7 @@ fn main() {
         if user_input == "2" {
             create_account(&mut accounts);
         } if user_input == "1" {
-
+            logon_account(&mut accounts, &mut logged_in);
         } if user_input == "quit" {
             app_running = false;
         } else {
