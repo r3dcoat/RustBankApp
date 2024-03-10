@@ -1,6 +1,5 @@
 // recreating a banking application that I created in Python
 use std::io;
-use std::io::Read;
 // use std::thread::AccessError;
 // use log::log;
 
@@ -145,16 +144,19 @@ fn display_balance(accounts: &mut Vec<Account>, logged_in_account: &mut String) 
 
 // function to transfer money
 fn transfer_money(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
-    let mut target_account = logged_in_account.to_owned();
     let mut transfer_target = String::new();
     let mut amount = String::new();
 
-    println!("Enter the name of the account you wish to transfer to: ");
+    println!("Enter the email of the account you wish to transfer to: ");
     io::stdin()
         .read_line(&mut transfer_target)
         .expect("Failed to read line");
     let transfer_target = transfer_target.trim().to_owned();
-    println!("{}", transfer_target);
+
+    if !accounts.iter().any(|account| account.email == transfer_target) {
+        println!("The requested account was not found. Try again later.");
+        return;
+    }
 
     println!("Enter the amount you wish to transfer: ");
     io::stdin()
@@ -162,20 +164,22 @@ fn transfer_money(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
         .expect("Failed to read line");
     let transfer_amount: i32 = amount.trim().parse().expect("Please enter a valid number");
 
-    for account in accounts.iter_mut(){
-        if account.email == transfer_target {
-            println!("Initializing transfer to {}", transfer_target);
-        } else {
-            println!("The requested account was not found. Try again later.");
-            return;
-        }
+    if transfer_amount < 0 {
+        println!("Transfer amount cannot be less than 0$");
+        return;
     }
 
+    let mut source_account_balance = 0;
+    let mut found_source_account = false;
+
     for account in accounts.iter_mut(){
-        if account.email == target_account {
-            if account.balance - transfer_amount > 0 && account.balance >= transfer_amount {
+        if account.email == *logged_in_account {
+            if account.balance >= transfer_amount {
                 account.balance -= transfer_amount;
-                println!("Your current balance is ${}", account.balance)
+                source_account_balance = account.balance;
+                found_source_account = true;
+                println!("Your current balance is ${}", account.balance);
+                break;
             } else {
                 println!("You do not have the required funds to complete this transfer.");
                 return;
@@ -183,11 +187,13 @@ fn transfer_money(accounts: &mut Vec<Account>, logged_in_account: &mut String) {
         }
     }
 
-    for account in accounts.iter_mut(){
-        if account.email == transfer_target {
-            account.balance += transfer_amount;
-            println!("Your transfer to ${} was successful.", transfer_target);
-            return;
+    if found_source_account {
+        for account in accounts.iter_mut() {
+            if account.email == transfer_target {
+                account.balance += transfer_amount;
+                println!("Your transfer of ${} to {} was successful. Your new balance is ${}", transfer_amount, transfer_target, source_account_balance);
+                return;
+            }
         }
     }
 }
